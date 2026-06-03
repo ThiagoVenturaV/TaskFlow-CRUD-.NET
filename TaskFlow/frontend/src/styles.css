@@ -1,0 +1,47 @@
+/* You can add global styles to this file, and also import other style files */
+:root {
+  --bg-darkest: #040815; /* Plano de fundo azul-escuro corporativo */
+  --bg-dark: #080f25;
+  --bg-card: rgba(10, 20, 42, 0.75); /* Efeito vidro */
+  --bg-card-hover: rgba(18, 32, 64, 0.85);
+  
+  --text-primary: #ffffff;
+  --text-secondary: #a3b8cc;
+  --text-muted: #64748b;
+
+  --accent-purple: #1e40af;
+  --accent-indigo: #2563eb;
+  --accent-cyan: #0284c7;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+
+  --border-color: rgba(37, 99, 235, 0.15);
+  --border-focus: rgba(37, 99, 235, 0.6);
+}
+
+body {
+  background-color: var(--bg-darkest);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(2, 132, 199, 0.12) 0px, transparent 50%);
+  color: var(--text-primary);
+}
+
+/* Indicadores de força de senha no formulário */
+.validation-helper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+.helper-valid { color: var(--accent-green) !important; }
+.helper-invalid { color: var(--accent-red) !important; }
+
+.password-requirements {
+  margin-top: 10px;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}

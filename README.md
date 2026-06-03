@@ -90,6 +90,16 @@ Jwt__Audience=TaskFlowClient
 ```
 
 ---
+## Login
+Realizar o cadastro de um usuario pelo frontend ou pela API
+
+Realizar o Login Admin
+Acesse http://localhost:4200 no seu navegador. Graças ao seeder automático presente no backend, você pode fazer o login administrativo imediatamente usando as seguintes credenciais:
+
+E-mail: admin@taskflow.com
+Senha: Admin123
+
+---
 
 ## Decisões técnicas
 

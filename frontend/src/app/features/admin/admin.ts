@@ -20,12 +20,6 @@ export class Admin implements OnInit {
   private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
 
-  // Admin Auth Signals
-  readonly loginEmail = signal('');
-  readonly loginPassword = signal('');
-  readonly loginError = signal<string | null>(null);
-  readonly isLoggingIn = signal(false);
-
   // CRUD Data Signals
   readonly usersList = signal<User[]>([]);
   readonly isLoading = signal(true);
@@ -81,41 +75,7 @@ export class Admin implements OnInit {
   );
 
   ngOnInit(): void {
-    if (this.authService.isAdmin()) {
-      this.loadUsers();
-    }
-  }
-
-  // --- ADMIN LOGIN LOGIC ---
-  onAdminLogin(): void {
-    if (!this.loginEmail() || !this.loginPassword()) {
-      this.loginError.set('Por favor, preencha todos os campos.');
-      return;
-    }
-
-    if (this.loginEmail() !== 'admin@taskflow.com') {
-      this.loginError.set('Apenas o e-mail administrativo é permitido nesta rota.');
-      return;
-    }
-
-    this.isLoggingIn.set(true);
-    this.loginError.set(null);
-
-    this.authService.login({ email: this.loginEmail(), password: this.loginPassword() }).subscribe({
-      next: (res) => {
-        this.isLoggingIn.set(false);
-        if (res.email !== 'admin@taskflow.com') {
-          this.authService.logout();
-          this.loginError.set('Esta área é restrita para o administrador.');
-        } else {
-          this.loadUsers();
-        }
-      },
-      error: (err) => {
-        this.isLoggingIn.set(false);
-        this.loginError.set(this.parseError(err, 'Falha na autenticação do administrador. Verifique as credenciais.'));
-      }
-    });
+    this.loadUsers();
   }
 
   // --- CRUD USER LOGIC ---

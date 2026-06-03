@@ -1,58 +1,4 @@
-@if (!authService.isAdmin()) {
-  <!-- 1. ADMIN EXCLUSIVE LOGIN FORM -->
-  <div class="auth-page-container">
-    <div class="glass-panel auth-card">
-      <div class="auth-header">
-        <span class="material-icons-outlined admin-badge-icon">admin_panel_settings</span>
-        <h2>Acesso do Administrador</h2>
-        <p>Insira as credenciais exclusivas do sistema</p>
-      </div>
 
-      @if (loginError()) {
-        <div class="alert alert-danger">
-          <span class="material-icons-outlined">warning</span>
-          {{ loginError() }}
-        </div>
-      }
-
-      <form (ngSubmit)="onAdminLogin()" #adminLoginForm="ngForm" class="auth-form">
-        <div class="form-group">
-          <label for="loginEmail" class="form-label">E-mail Administrativo</label>
-          <input 
-            type="email" 
-            id="loginEmail" 
-            name="loginEmail"
-            class="form-control"
-            placeholder="admin@taskflow.com"
-            [ngModel]="loginEmail()"
-            (ngModelChange)="loginEmail.set($event)"
-            required>
-        </div>
-
-        <div class="form-group">
-          <label for="loginPassword" class="form-label">Senha</label>
-          <input 
-            type="password" 
-            id="loginPassword" 
-            name="loginPassword"
-            class="form-control"
-            placeholder="Digite a senha do admin"
-            [ngModel]="loginPassword()"
-            (ngModelChange)="loginPassword.set($event)"
-            required>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-full" [disabled]="isLoggingIn()">
-          @if (isLoggingIn()) {
-            <span class="spinner"></span> Verificando...
-          } @else {
-            Autenticar <span class="material-icons-outlined icon-btn-right">vpn_key</span>
-          }
-        </button>
-      </form>
-    </div>
-  </div>
-} @else {
   <!-- 2. ADMIN USERS & TASKS BOARD SPLIT LAYOUT -->
   <div class="admin-dashboard-split">
     
@@ -350,4 +296,3 @@
       </div>
     </div>
   }
-}

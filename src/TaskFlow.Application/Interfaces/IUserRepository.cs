@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskFlow.Domain.Entities;
 
-sing TaskFlow.Domain.Entities;
-
 namespace TaskFlow.Application.Interfaces;
 
 public interface IUserRepository

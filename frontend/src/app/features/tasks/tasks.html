@@ -1,0 +1,195 @@
+<div class="tasks-page">
+  <!-- Page Header -->
+  <header class="page-header glass-panel">
+    <div class="header-title">
+      <h1>📝 Gerenciamento de Tarefas</h1>
+      <p>Acompanhe, atribua e edite as tarefas de todo o time</p>
+    </div>
+    <button (click)="openCreateModal()" class="btn btn-primary" [disabled]="usersList().length === 0">
+      <span>➕</span> Nova Tarefa
+    </button>
+  </header>
+
+  <!-- Warn if no users are registered -->
+  @if (usersList().length === 0 && !isLoading()) {
+    <div class="alert alert-danger">
+      <span>⚠️</span> <strong>Atenção:</strong> Você precisa cadastrar pelo menos um usuário antes de criar tarefas!
+    </div>
+  }
+
+  <!-- Notification banners -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span>✅</span> {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger">
+      <span>⚠️</span> {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Filters Panel -->
+  <div class="filters-panel glass-panel">
+    <div class="filter-group">
+      <label for="filterUser" class="filter-label">🔍 Filtrar por Usuário:</label>
+      <select 
+        id="filterUser" 
+        class="form-control filter-select"
+        [ngModel]="selectedFilterUser()"
+        (ngModelChange)="selectedFilterUser.set($event)">
+        <option value="">Todos os Usuários</option>
+        @for (user of usersList(); track user.id) {
+          <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando tarefas...</p>
+    </div>
+  } @else {
+    <!-- Tasks Grid Layout -->
+    <div class="tasks-grid">
+      @for (task of filteredTasks(); track task.id) {
+        <div class="glass-panel task-card">
+          <div class="task-card-header">
+            <span [className]="getStatusClass(task.status)">{{ task.statusLabel }}</span>
+            <span class="task-date" [class.overdue]="true">📅 {{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="task-card-body">
+            <h3>{{ task.title }}</h3>
+            <p>{{ task.description || 'Sem descrição cadastrada.' }}</p>
+          </div>
+
+          <!-- Quick Owner Reassignment -->
+          <div class="task-card-owner">
+            <label class="owner-label">👤 Responsável:</label>
+            <select class="form-control select-xs" (change)="onQuickReassign(task, $event)">
+              @for (user of usersList(); track user.id) {
+                <option [value]="user.id" [selected]="user.id === task.userId">
+                  {{ user.name }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="task-card-footer">
+            <button (click)="openEditModal(task)" class="btn btn-secondary btn-sm" title="Editar">
+              ✏️ Editar
+            </button>
+            <button (click)="deleteTask(task)" class="btn btn-danger btn-sm" title="Excluir">
+              🗑️ Excluir
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="glass-panel empty-card">
+          <p>Nenhuma tarefa localizada.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Creation / Editing Modal -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="glass-panel modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
+          <button (click)="closeModal()" class="modal-close">&times;</button>
+        </div>
+
+        @if (formError()) {
+          <div class="alert alert-danger">
+            <span>⚠️</span> {{ formError() }}
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" #taskForm="ngForm" class="auth-form">
+          <div class="form-group">
+            <label for="formTitle" class="form-label">Título da Tarefa *</label>
+            <input 
+              type="text" 
+              id="formTitle" 
+              name="formTitle"
+              class="form-control"
+              placeholder="Digite o título da atividade"
+              [ngModel]="formTitle()"
+              (ngModelChange)="formTitle.set($event)"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="formDescription" class="form-label">Descrição (Opcional)</label>
+            <textarea 
+              id="formDescription" 
+              name="formDescription"
+              class="form-control"
+              placeholder="Descreva a atividade..."
+              rows="3"
+              [ngModel]="formDescription()"
+              (ngModelChange)="formDescription.set($event)">
+            </textarea>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label for="formDueDate" class="form-label">Prazo final *</label>
+              <input 
+                type="date" 
+                id="formDueDate" 
+                name="formDueDate"
+                class="form-control"
+                [ngModel]="formDueDate()"
+                (ngModelChange)="formDueDate.set($event)"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label for="formStatus" class="form-label">Status</label>
+              <select 
+                id="formStatus" 
+                name="formStatus"
+                class="form-control"
+                [ngModel]="formStatus()"
+                (ngModelChange)="formStatus.set($event)">
+                <option [value]="0">Pendente (Pending)</option>
+                <option [value]="1">Em Progresso (InProgress)</option>
+                <option [value]="2">Concluída (Done)</option>
+                <option [value]="3">Cancelada (Cancelled)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="formUserId" class="form-label">Usuário Responsável *</label>
+            <select 
+              id="formUserId" 
+              name="formUserId"
+              class="form-control"
+              [ngModel]="formUserId()"
+              (ngModelChange)="formUserId.set($event)"
+              required>
+              @for (user of usersList(); track user.id) {
+                <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button type="button" (click)="closeModal()" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,105 @@
+<div class="auth-page-container">
+  <div class="glass-panel auth-card">
+    <div class="auth-header">
+      <h2>Criar Conta</h2>
+      <p>Junte-se ao TaskFlow hoje mesmo</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <span class="material-icons-outlined">warning</span> {{ errorMessage() }}
+      </div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="auth-form">
+      
+      <!-- Nome -->
+      <div class="form-group">
+        <label for="name" class="form-label">Nome Completo</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name"
+          class="form-control"
+          placeholder="Seu nome completo"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          required>
+        @if (name().length > 0) {
+          <span class="validation-helper" [class.helper-valid]="isNameValid()" [class.helper-invalid]="!isNameValid()">
+            <span class="material-icons-outlined helper-icon">{{ isNameValid() ? 'check_circle' : 'cancel' }}</span>
+            Mínimo de 3 caracteres
+          </span>
+        }
+      </div>
+
+      <!-- E-mail -->
+      <div class="form-group">
+        <label for="email" class="form-label">E-mail</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email"
+          class="form-control"
+          placeholder="exemplo@email.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          required>
+        @if (email().length > 0) {
+          <span class="validation-helper" [class.helper-valid]="isEmailValid()" [class.helper-invalid]="!isEmailValid()">
+            <span class="material-icons-outlined helper-icon">{{ isEmailValid() ? 'check_circle' : 'cancel' }}</span>
+            Formato de e-mail válido
+          </span>
+        }
+      </div>
+
+      <!-- Senha -->
+      <div class="form-group">
+        <label for="password" class="form-label">Senha</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password"
+          class="form-control"
+          placeholder="Crie uma senha segura"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          required>
+        
+        <!-- Password Requisitos list -->
+        @if (password().length > 0) {
+          <div class="password-requirements">
+            <p class="requirements-title">Requisitos da senha:</p>
+            
+            <span class="validation-helper" [class.helper-valid]="isPasswordLengthValid()" [class.helper-invalid]="!isPasswordLengthValid()">
+              <span class="material-icons-outlined helper-icon">{{ isPasswordLengthValid() ? 'check' : 'close' }}</span>
+              Mínimo de 6 caracteres
+            </span>
+
+            <span class="validation-helper" [class.helper-valid]="isPasswordUpperValid()" [class.helper-invalid]="!isPasswordUpperValid()">
+              <span class="material-icons-outlined helper-icon">{{ isPasswordUpperValid() ? 'check' : 'close' }}</span>
+              Pelo menos uma letra maiúscula (A-Z)
+            </span>
+
+            <span class="validation-helper" [class.helper-valid]="isPasswordNumberValid()" [class.helper-invalid]="!isPasswordNumberValid()">
+              <span class="material-icons-outlined helper-icon">{{ isPasswordNumberValid() ? 'check' : 'close' }}</span>
+              Pelo menos um número (0-9)
+            </span>
+          </div>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" [disabled]="isLoading() || !isFormValid()">
+        @if (isLoading()) {
+          <span class="spinner"></span> Carregando...
+        } @else {
+          Cadastrar <span class="material-icons-outlined" style="font-size: 1.1rem; margin-left: 6px; vertical-align: middle;">person_add</span>
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Já possui uma conta? <a routerLink="/login">Faça Login</a></p>
+    </div>
+  </div>
+</div>

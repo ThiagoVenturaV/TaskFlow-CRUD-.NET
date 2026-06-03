@@ -1,0 +1,280 @@
+<div class="dashboard-container">
+  <!-- Welcoming Section -->
+  <header class="dashboard-header glass-panel">
+    <div class="welcome-text">
+      <h1>Olá, {{ authService.currentUser()?.name }}! <span class="material-icons-outlined wave-icon">waving_hand</span></h1>
+      <p>Gerencie suas atividades com o quadro Kanban. Organização rápida e intuitiva!</p>
+    </div>
+    <div class="quick-actions">
+      <button (click)="openCreateModal(0)" class="btn btn-primary">
+        <span class="material-icons-outlined">add</span> Criar Nova Tarefa
+      </button>
+    </div>
+  </header>
+
+  <!-- Notification banners -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span class="material-icons-outlined">check_circle</span>
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger">
+      <span class="material-icons-outlined">warning</span>
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando suas tarefas...</p>
+    </div>
+  } @else {
+    <!-- Trello-style Kanban Board -->
+    <div class="kanban-board">
+      
+      <!-- Column 1: Pending -->
+      <div class="kanban-column glass-panel">
+        <div class="column-header column-pending">
+          <span class="material-icons-outlined font-icon-title">schedule</span>
+          <h3>Pendentes</h3>
+          <span class="column-count">{{ pendingTasks().length }}</span>
+        </div>
+        <div class="column-body">
+          @for (task of pendingTasks(); track task.id) {
+            <div class="kanban-card">
+              <div class="card-meta">
+                <span class="material-icons-outlined date-icon">calendar_today</span>
+                <span class="card-date">{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="card-info">
+                <h4>{{ task.title }}</h4>
+                <p>{{ task.description || 'Sem descrição' }}</p>
+              </div>
+
+              <div class="card-actions">
+                <button (click)="openEditModal(task)" class="btn btn-secondary btn-sm" title="Editar">
+                  <span class="material-icons-outlined font-sm-icon">edit</span>
+                </button>
+                <button (click)="deleteTask(task)" class="btn btn-danger btn-sm" title="Excluir">
+                  <span class="material-icons-outlined font-sm-icon">delete</span>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-column-placeholder">Sem tarefas pendentes</div>
+          }
+        </div>
+        <div class="column-footer">
+          <button (click)="openCreateModal(0)" class="btn-add-task-inline">
+            <span class="material-icons-outlined">add</span> Adicionar Tarefa
+          </button>
+        </div>
+      </div>
+
+      <!-- Column 2: In Progress -->
+      <div class="kanban-column glass-panel">
+        <div class="column-header column-progress">
+          <span class="material-icons-outlined font-icon-title">bolt</span>
+          <h3>Em Progresso</h3>
+          <span class="column-count">{{ inProgressTasks().length }}</span>
+        </div>
+        <div class="column-body">
+          @for (task of inProgressTasks(); track task.id) {
+            <div class="kanban-card">
+              <div class="card-meta">
+                <span class="material-icons-outlined date-icon">calendar_today</span>
+                <span class="card-date">{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="card-info">
+                <h4>{{ task.title }}</h4>
+                <p>{{ task.description || 'Sem descrição' }}</p>
+              </div>
+
+              <div class="card-actions">
+                <button (click)="openEditModal(task)" class="btn btn-secondary btn-sm" title="Editar">
+                  <span class="material-icons-outlined font-sm-icon">edit</span>
+                </button>
+                <button (click)="deleteTask(task)" class="btn btn-danger btn-sm" title="Excluir">
+                  <span class="material-icons-outlined font-sm-icon">delete</span>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-column-placeholder">Sem tarefas em progresso</div>
+          }
+        </div>
+        <div class="column-footer">
+          <button (click)="openCreateModal(1)" class="btn-add-task-inline">
+            <span class="material-icons-outlined">add</span> Adicionar Tarefa
+          </button>
+        </div>
+      </div>
+
+      <!-- Column 3: Done -->
+      <div class="kanban-column glass-panel">
+        <div class="column-header column-done">
+          <span class="material-icons-outlined font-icon-title">check_circle</span>
+          <h3>Concluídas</h3>
+          <span class="column-count">{{ doneTasks().length }}</span>
+        </div>
+        <div class="column-body">
+          @for (task of doneTasks(); track task.id) {
+            <div class="kanban-card card-completed">
+              <div class="card-meta">
+                <span class="material-icons-outlined date-icon">calendar_today</span>
+                <span class="card-date">{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="card-info">
+                <h4>{{ task.title }}</h4>
+                <p>{{ task.description || 'Sem descrição' }}</p>
+              </div>
+
+              <div class="card-actions">
+                <button (click)="openEditModal(task)" class="btn btn-secondary btn-sm" title="Editar">
+                  <span class="material-icons-outlined font-sm-icon">edit</span>
+                </button>
+                <button (click)="deleteTask(task)" class="btn btn-danger btn-sm" title="Excluir">
+                  <span class="material-icons-outlined font-sm-icon">delete</span>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-column-placeholder">Nenhuma tarefa concluída</div>
+          }
+        </div>
+        <div class="column-footer">
+          <button (click)="openCreateModal(2)" class="btn-add-task-inline">
+            <span class="material-icons-outlined">add</span> Adicionar Tarefa
+          </button>
+        </div>
+      </div>
+
+      <!-- Column 4: Cancelled -->
+      <div class="kanban-column glass-panel">
+        <div class="column-header column-cancelled">
+          <span class="material-icons-outlined font-icon-title">cancel</span>
+          <h3>Canceladas</h3>
+          <span class="column-count">{{ cancelledTasks().length }}</span>
+        </div>
+        <div class="column-body">
+          @for (task of cancelledTasks(); track task.id) {
+            <div class="kanban-card card-cancelled-state">
+              <div class="card-meta">
+                <span class="material-icons-outlined date-icon">calendar_today</span>
+                <span class="card-date">{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="card-info">
+                <h4>{{ task.title }}</h4>
+                <p>{{ task.description || 'Sem descrição' }}</p>
+              </div>
+
+              <div class="card-actions">
+                <button (click)="openEditModal(task)" class="btn btn-secondary btn-sm" title="Editar">
+                  <span class="material-icons-outlined font-sm-icon">edit</span>
+                </button>
+                <button (click)="deleteTask(task)" class="btn btn-danger btn-sm" title="Excluir">
+                  <span class="material-icons-outlined font-sm-icon">delete</span>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-column-placeholder">Sem tarefas canceladas</div>
+          }
+        </div>
+        <div class="column-footer">
+          <button (click)="openCreateModal(3)" class="btn-add-task-inline">
+            <span class="material-icons-outlined">add</span> Adicionar Tarefa
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- Task Creation / Editing Modal -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="glass-panel modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
+          <button (click)="closeModal()" class="modal-close">&times;</button>
+        </div>
+
+        @if (formError()) {
+          <div class="alert alert-danger">
+            <span class="material-icons-outlined">warning</span>
+            {{ formError() }}
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" #taskForm="ngForm" class="auth-form">
+          <div class="form-group">
+            <label for="formTitle" class="form-label">Título da Tarefa *</label>
+            <input 
+              type="text" 
+              id="formTitle" 
+              name="formTitle"
+              class="form-control"
+              placeholder="Ex: Desenhar mockups do app"
+              [ngModel]="formTitle()"
+              (ngModelChange)="formTitle.set($event)"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="formDescription" class="form-label">Descrição (Opcional)</label>
+            <textarea 
+              id="formDescription" 
+              name="formDescription"
+              class="form-control"
+              placeholder="Descreva detalhadamente a atividade..."
+              rows="3"
+              [ngModel]="formDescription()"
+              (ngModelChange)="formDescription.set($event)">
+            </textarea>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label for="formDueDate" class="form-label">Prazo de entrega *</label>
+              <input 
+                type="date" 
+                id="formDueDate" 
+                name="formDueDate"
+                class="form-control"
+                [ngModel]="formDueDate()"
+                (ngModelChange)="formDueDate.set($event)"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label for="formStatus" class="form-label">Status</label>
+              <select 
+                id="formStatus" 
+                name="formStatus"
+                class="form-control"
+                [ngModel]="formStatus()"
+                (ngModelChange)="formStatus.set($event)">
+                <option [value]="0">Pendente</option>
+                <option [value]="1">Em Progresso</option>
+                <option [value]="2">Concluída</option>
+                <option [value]="3">Cancelada</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button type="button" (click)="closeModal()" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

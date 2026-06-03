@@ -1,0 +1,130 @@
+<div class="users-page">
+  <!-- Page Header -->
+  <header class="page-header glass-panel">
+    <div class="header-title">
+      <h1>👥 Gerenciamento de Usuários</h1>
+      <p>Cadastre, edite e acompanhe os usuários do sistema</p>
+    </div>
+    <button (click)="openCreateModal()" class="btn btn-primary">
+      <span>➕</span> Novo Usuário
+    </button>
+  </header>
+
+  <!-- Notification banners -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span>✅</span> {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger">
+      <span>⚠️</span> {{ errorMessage() }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando usuários...</p>
+    </div>
+  } @else {
+    <!-- Grid of User Cards -->
+    <div class="users-grid">
+      @for (user of usersList(); track user.id) {
+        <div class="glass-panel user-card">
+          <div class="card-avatar">👤</div>
+          <div class="card-details">
+            <h3>{{ user.name }}</h3>
+            <p class="email">{{ user.email }}</p>
+            <div class="task-counter">
+              <span class="badge" [class.badge-done]="user.taskCount > 0" [class.badge-pending]="user.taskCount === 0">
+                {{ user.taskCount }} {{ user.taskCount === 1 ? 'tarefa' : 'tarefas' }}
+              </span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button (click)="openEditModal(user)" class="btn btn-secondary btn-sm" title="Editar">
+              ✏️
+            </button>
+            <button (click)="deleteUser(user)" class="btn btn-danger btn-sm" title="Excluir">
+              🗑️
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="glass-panel empty-card">
+          <p>Nenhum usuário cadastrado no sistema.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Creation / Editing Modal -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="glass-panel modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+          <button (click)="closeModal()" class="modal-close">&times;</button>
+        </div>
+
+        @if (formError()) {
+          <div class="alert alert-danger">
+            <span>⚠️</span> {{ formError() }}
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" #userForm="ngForm" class="auth-form">
+          <div class="form-group">
+            <label for="formName" class="form-label">Nome Completo *</label>
+            <input 
+              type="text" 
+              id="formName" 
+              name="formName"
+              class="form-control"
+              placeholder="Digite o nome"
+              [ngModel]="formName()"
+              (ngModelChange)="formName.set($event)"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="formEmail" class="form-label">E-mail *</label>
+            <input 
+              type="email" 
+              id="formEmail" 
+              name="formEmail"
+              class="form-control"
+              placeholder="exemplo@email.com"
+              [ngModel]="formEmail()"
+              (ngModelChange)="formEmail.set($event)"
+              required>
+          </div>
+
+          @if (!isEditing()) {
+            <div class="form-group">
+              <label for="formPassword" class="form-label">Senha *</label>
+              <input 
+                type="password" 
+                id="formPassword" 
+                name="formPassword"
+                class="form-control"
+                placeholder="Senha (mínimo 6 chars, 1 maiúscula, 1 número)"
+                [ngModel]="formPassword()"
+                (ngModelChange)="formPassword.set($event)"
+                required>
+            </div>
+          }
+
+          <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button type="button" (click)="closeModal()" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,353 @@
+@if (!authService.isAdmin()) {
+  <!-- 1. ADMIN EXCLUSIVE LOGIN FORM -->
+  <div class="auth-page-container">
+    <div class="glass-panel auth-card">
+      <div class="auth-header">
+        <span class="material-icons-outlined admin-badge-icon">admin_panel_settings</span>
+        <h2>Acesso do Administrador</h2>
+        <p>Insira as credenciais exclusivas do sistema</p>
+      </div>
+
+      @if (loginError()) {
+        <div class="alert alert-danger">
+          <span class="material-icons-outlined">warning</span>
+          {{ loginError() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onAdminLogin()" #adminLoginForm="ngForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginEmail" class="form-label">E-mail Administrativo</label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            name="loginEmail"
+            class="form-control"
+            placeholder="admin@taskflow.com"
+            [ngModel]="loginEmail()"
+            (ngModelChange)="loginEmail.set($event)"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword" class="form-label">Senha</label>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            name="loginPassword"
+            class="form-control"
+            placeholder="Digite a senha do admin"
+            [ngModel]="loginPassword()"
+            (ngModelChange)="loginPassword.set($event)"
+            required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" [disabled]="isLoggingIn()">
+          @if (isLoggingIn()) {
+            <span class="spinner"></span> Verificando...
+          } @else {
+            Autenticar <span class="material-icons-outlined icon-btn-right">vpn_key</span>
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+} @else {
+  <!-- 2. ADMIN USERS & TASKS BOARD SPLIT LAYOUT -->
+  <div class="admin-dashboard-split">
+    
+    <!-- Left Sidebar: Users CRUD List -->
+    <aside class="admin-sidebar glass-panel">
+      <div class="sidebar-header">
+        <h3>
+          <span class="material-icons-outlined font-icon-title">supervisor_account</span> 
+          Membros do Time
+        </h3>
+        <button (click)="openCreateModal()" class="btn btn-primary btn-sm add-user-btn" title="Novo Usuário">
+          <span class="material-icons-outlined">add</span>
+        </button>
+      </div>
+
+      @if (successMessage()) {
+        <div class="alert alert-success compact-alert">
+          <span class="material-icons-outlined">check_circle</span>
+          {{ successMessage() }}
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger compact-alert">
+          <span class="material-icons-outlined">warning</span>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (isLoading()) {
+        <div class="loading-state compact-loading">
+          <div class="spinner spinner-sm"></div>
+          <p>Carregando equipe...</p>
+        </div>
+      } @else {
+        <div class="sidebar-list">
+          @for (user of usersList(); track user.id) {
+            <div 
+              class="user-list-item" 
+              [class.active]="selectedUser()?.id === user.id"
+              [class.admin-item]="user.email === 'admin@taskflow.com'"
+              (click)="selectUser(user)">
+              <div class="user-avatar-small">
+                <span class="material-icons-outlined">
+                  {{ user.email === 'admin@taskflow.com' ? 'admin_panel_settings' : 'person' }}
+                </span>
+              </div>
+              <div class="user-item-info">
+                <h4>{{ user.name }}</h4>
+                <p class="email">{{ user.email }}</p>
+                <span class="badge" [class.badge-done]="user.taskCount > 0" [class.badge-pending]="user.taskCount === 0">
+                  {{ user.taskCount }} {{ user.taskCount === 1 ? 'tarefa' : 'tarefas' }}
+                </span>
+              </div>
+              <div class="user-item-actions">
+                <button (click)="openEditModal(user, $event)" class="btn-icon-action" title="Editar">
+                  <span class="material-icons-outlined">edit</span>
+                </button>
+                <button 
+                  (click)="deleteUser(user, $event)" 
+                  class="btn-icon-action btn-icon-danger" 
+                  title="Excluir" 
+                  [disabled]="user.email === 'admin@taskflow.com'">
+                  <span class="material-icons-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-list-state">Nenhum usuário cadastrado.</div>
+          }
+        </div>
+      }
+    </aside>
+
+    <!-- Right Content Panel: Selected User's Kanban Board -->
+    <main class="admin-content-panel">
+      @if (!selectedUser()) {
+        <div class="glass-panel admin-empty-board">
+          <span class="material-icons-outlined empty-board-icon">assignment</span>
+          <h2>Acompanhamento de Tarefas</h2>
+          <p>Selecione um membro do time na barra lateral para carregar e inspecionar o seu quadro individual de tarefas.</p>
+        </div>
+      } @else {
+        <div class="selected-board-header glass-panel">
+          <div class="board-user-details">
+            <span class="material-icons-outlined board-avatar">account_circle</span>
+            <div>
+              <h2>Quadro de {{ selectedUser()?.name }}</h2>
+              <p>Email: {{ selectedUser()?.email }} | Total: {{ selectedUserTasks().length }} tarefas</p>
+            </div>
+          </div>
+        </div>
+
+        @if (isTasksLoading()) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Carregando tarefas do usuário...</p>
+          </div>
+        } @else {
+          <!-- Administrative Kanban Viewer -->
+          <div class="admin-kanban-board">
+            
+            <!-- Column: Pending -->
+            <div class="admin-kanban-column glass-panel">
+              <div class="column-header column-pending">
+                <span class="material-icons-outlined">schedule</span>
+                <h4>Pendentes ({{ pendingTasks().length }})</h4>
+              </div>
+              <div class="column-cards">
+                @for (task of pendingTasks(); track task.id) {
+                  <div class="admin-task-card">
+                    <div class="task-card-meta">
+                      <span class="material-icons-outlined">calendar_today</span>
+                      <span>{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <h5>{{ task.title }}</h5>
+                    <p>{{ task.description || 'Sem descrição' }}</p>
+                  </div>
+                } @empty {
+                  <div class="empty-col-placeholder">Nenhuma pendente</div>
+                }
+              </div>
+            </div>
+
+            <!-- Column: In Progress -->
+            <div class="admin-kanban-column glass-panel">
+              <div class="column-header column-progress">
+                <span class="material-icons-outlined">bolt</span>
+                <h4>Em Progresso ({{ inProgressTasks().length }})</h4>
+              </div>
+              <div class="column-cards">
+                @for (task of inProgressTasks(); track task.id) {
+                  <div class="admin-task-card">
+                    <div class="task-card-meta">
+                      <span class="material-icons-outlined">calendar_today</span>
+                      <span>{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <h5>{{ task.title }}</h5>
+                    <p>{{ task.description || 'Sem descrição' }}</p>
+                  </div>
+                } @empty {
+                  <div class="empty-col-placeholder">Nenhuma em progresso</div>
+                }
+              </div>
+            </div>
+
+            <!-- Column: Done -->
+            <div class="admin-kanban-column glass-panel">
+              <div class="column-header column-done">
+                <span class="material-icons-outlined">check_circle</span>
+                <h4>Concluídas ({{ doneTasks().length }})</h4>
+              </div>
+              <div class="column-cards">
+                @for (task of doneTasks(); track task.id) {
+                  <div class="admin-task-card card-completed">
+                    <div class="task-card-meta">
+                      <span class="material-icons-outlined">calendar_today</span>
+                      <span>{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <h5>{{ task.title }}</h5>
+                    <p>{{ task.description || 'Sem descrição' }}</p>
+                  </div>
+                } @empty {
+                  <div class="empty-col-placeholder">Nenhuma concluída</div>
+                }
+              </div>
+            </div>
+
+            <!-- Column: Cancelled -->
+            <div class="admin-kanban-column glass-panel">
+              <div class="column-header column-cancelled">
+                <span class="material-icons-outlined">cancel</span>
+                <h4>Canceladas ({{ cancelledTasks().length }})</h4>
+              </div>
+              <div class="column-cards">
+                @for (task of cancelledTasks(); track task.id) {
+                  <div class="admin-task-card card-cancelled-state">
+                    <div class="task-card-meta">
+                      <span class="material-icons-outlined">calendar_today</span>
+                      <span>{{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                    <h5>{{ task.title }}</h5>
+                    <p>{{ task.description || 'Sem descrição' }}</p>
+                  </div>
+                } @empty {
+                  <div class="empty-col-placeholder">Nenhuma cancelada</div>
+                }
+              </div>
+            </div>
+
+          </div>
+        }
+      }
+    </main>
+
+  </div>
+
+  <!-- User Creation / Editing Modal -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="glass-panel modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+          <button (click)="closeModal()" class="modal-close">&times;</button>
+        </div>
+
+        @if (formError()) {
+          <div class="alert alert-danger">
+            <span class="material-icons-outlined">warning</span>
+            {{ formError() }}
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" #userForm="ngForm" class="auth-form">
+          <div class="form-group">
+            <label for="formName" class="form-label">Nome Completo *</label>
+            <input 
+              type="text" 
+              id="formName" 
+              name="formName"
+              class="form-control"
+              placeholder="Digite o nome do usuário"
+              [ngModel]="formName()"
+              (ngModelChange)="formName.set($event)"
+              required>
+            @if (formName().length > 0) {
+              <span class="validation-helper" [class.helper-valid]="isNameValid()" [class.helper-invalid]="!isNameValid()">
+                <span class="material-icons-outlined helper-icon">{{ isNameValid() ? 'check_circle' : 'cancel' }}</span>
+                Mínimo de 3 caracteres
+              </span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="formEmail" class="form-label">E-mail *</label>
+            <input 
+              type="email" 
+              id="formEmail" 
+              name="formEmail"
+              class="form-control"
+              placeholder="usuario@email.com"
+              [ngModel]="formEmail()"
+              (ngModelChange)="formEmail.set($event)"
+              required>
+            @if (formEmail().length > 0) {
+              <span class="validation-helper" [class.helper-valid]="isEmailValid()" [class.helper-invalid]="!isEmailValid()">
+                <span class="material-icons-outlined helper-icon">{{ isEmailValid() ? 'check_circle' : 'cancel' }}</span>
+                Formato de e-mail válido
+              </span>
+            }
+          </div>
+
+          @if (!isEditing()) {
+            <div class="form-group">
+              <label for="formPassword" class="form-label">Senha *</label>
+              <input 
+                type="password" 
+                id="formPassword" 
+                name="formPassword"
+                class="form-control"
+                placeholder="Senha (mínimo 6 chars, 1 maiúscula, 1 número)"
+                [ngModel]="formPassword()"
+                (ngModelChange)="formPassword.set($event)"
+                required>
+              @if (formPassword().length > 0) {
+                <div class="password-requirements">
+                  <p class="requirements-title">Requisitos da senha:</p>
+                  
+                  <span class="validation-helper" [class.helper-valid]="isPasswordLengthValid()" [class.helper-invalid]="!isPasswordLengthValid()">
+                    <span class="material-icons-outlined helper-icon">{{ isPasswordLengthValid() ? 'check' : 'close' }}</span>
+                    Mínimo de 6 caracteres
+                  </span>
+
+                  <span class="validation-helper" [class.helper-valid]="isPasswordUpperValid()" [class.helper-invalid]="!isPasswordUpperValid()">
+                    <span class="material-icons-outlined helper-icon">{{ isPasswordUpperValid() ? 'check' : 'close' }}</span>
+                    Pelo menos uma letra maiúscula (A-Z)
+                  </span>
+
+                  <span class="validation-helper" [class.helper-valid]="isPasswordNumberValid()" [class.helper-invalid]="!isPasswordNumberValid()">
+                    <span class="material-icons-outlined helper-icon">{{ isPasswordNumberValid() ? 'check' : 'close' }}</span>
+                    Pelo menos um número (0-9)
+                  </span>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button type="button" (click)="closeModal()" class="btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting() || !isFormValid()">
+              {{ isSubmitting() ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+}

@@ -1,0 +1,60 @@
+<div class="auth-page-container">
+  <div class="glass-panel auth-card">
+    <div class="auth-header">
+      <h2>Entrar no TaskFlow</h2>
+      <p>Gerencie suas tarefas com inteligência</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <span class="material-icons-outlined">warning</span> {{ errorMessage() }}
+      </div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="auth-form">
+      <div class="form-group">
+        <label for="email" class="form-label">E-mail</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email"
+          class="form-control"
+          placeholder="exemplo@email.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          required>
+        @if (email().length > 0) {
+          <span class="validation-helper" [class.helper-valid]="isEmailValid()" [class.helper-invalid]="!isEmailValid()">
+            <span class="material-icons-outlined helper-icon">{{ isEmailValid() ? 'check_circle' : 'cancel' }}</span>
+            Formato de e-mail válido
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Senha</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password"
+          class="form-control"
+          placeholder="Digite sua senha"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" [disabled]="isLoading() || !isFormValid()">
+        @if (isLoading()) {
+          <span class="spinner"></span> Carregando...
+        } @else {
+          Entrar <span class="material-icons-outlined" style="font-size: 1.1rem; margin-left: 6px; vertical-align: middle;">login</span>
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Não tem uma conta? <a routerLink="/register">Cadastre-se agora</a></p>
+    </div>
+  </div>
+</div>

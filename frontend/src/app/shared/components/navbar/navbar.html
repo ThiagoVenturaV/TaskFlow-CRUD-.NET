@@ -1,0 +1,28 @@
+@if (authService.isAuthenticated()) {
+  <nav class="navbar glass-panel">
+    <div class="nav-container">
+      <a routerLink="/" class="logo">
+        <span class="material-icons-outlined logo-icon-font">assignment</span>
+        <span class="logo-text">Task<span>Flow</span></span>
+      </a>
+
+      <div class="nav-links">
+        @if (authService.isAdmin()) {
+          <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-nav-link">
+            <span class="material-icons-outlined nav-icon-font">admin_panel_settings</span> Painel Admin
+          </a>
+        }
+      </div>
+
+      <div class="nav-user">
+        <div class="user-info">
+          <span class="material-icons-outlined user-avatar-font">account_circle</span>
+          <span class="user-name">{{ authService.currentUser()?.name }}</span>
+        </div>
+        <button (click)="logout()" class="btn-logout">
+          <span class="material-icons-outlined logout-icon-font">logout</span> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+}

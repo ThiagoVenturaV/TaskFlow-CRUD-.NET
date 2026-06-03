@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TaskFlow — CRUD .NET + Angular
 
 API REST em .NET 9 com frontend Angular 21 pra gerenciamento de tarefas em formato Kanban. O projeto foi construído com Clean Architecture no backend, JWT com refresh token, e Angular Signals no frontend — sem NgRx, sem overhead desnecessário.
@@ -116,3 +117,6 @@ Jwt__Audience=TaskFlowClient
 - Testes não foram implementados (o `skipTests: true` no `angular.json` já entrega isso). Com mais tempo entraria pelo menos uns testes de serviço no backend usando xUnit + mock dos repositórios.
 
 - Sem paginação nas listagens — retorna tudo de uma vez. Pra uma demo funciona, em produção precisaria de cursor ou page/size.
+=======
+# TaskFlow-CRUD-C#-.NET
+>>>>>>> 1809684ca4da7f510b1124f76465e2d48ce47b1c

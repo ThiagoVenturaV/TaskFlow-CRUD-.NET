@@ -7,7 +7,6 @@ using TaskFlow.Domain.Entities;
 
 namespace TaskFlow.Application.Interfaces;
 
-/// <summary>Manages stored refresh tokens for token rotation.</summary>
 public interface IRefreshTokenRepository
 {
     Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken ct = default);

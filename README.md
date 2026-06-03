@@ -93,29 +93,24 @@ Jwt__Audience=TaskFlowClient
 
 ## Decisões técnicas
 
-**Clean Architecture no backend** — separei em quatro projetos: `Domain` (entidades e exceções), `Application` (serviços, interfaces, DTOs, validators), `Infrastructure` (EF Core, repositórios, TokenService) e `API` (controllers, middleware, DI). A camada de Application não referencia Infrastructure em nenhum momento — só interfaces.
+**Clean Architecture no backend** - separei em quatro projetos: `Domain` (entidades e exceções), `Application` (serviços, interfaces, DTOs, validators), `Infrastructure` (EF Core, repositórios, TokenService) e `API` (controllers, middleware, DI). As dependências sempre apontam para dentro.
 
-**Repository Pattern** — os serviços da Application falam só com interfaces (`IUserRepository`, `ITaskRepository`). Facilita trocar a implementação sem mexer na regra de negócio.
+**Repository Pattern** - os serviços da Application falam só com interfaces (`IUserRepository`, `ITaskRepository`). Facilita trocar a implementação sem mexer na regra de negócio.
 
-**JWT + Refresh Token com rotação** — access token de 15 minutos, refresh token de 7 dias armazenado no banco. A cada uso do refresh token o anterior é revogado e um novo é gerado. O interceptor do Angular faz o refresh silencioso automaticamente quando recebe 401.
+**JWT + Refresh Token com rotação** - access token de 15 minutos, refresh token de 7 dias armazenado no banco. A cada uso do refresh token o anterior é revogado e um novo é gerado. O interceptor do Angular faz o refresh silencioso automaticamente quando recebe 401.
 
-**Angular Signals** — escolhi Signals em vez de NgRx pra manter simples. O estado local de cada componente vive em signals, com `computed()` pra derivar as colunas do Kanban.
+**Angular Signals** - escolhi Signals em vez de NgRx. O estado local de cada componente vive em signals, com `computed()` pra derivar as colunas do Kanban.
 
-**Middleware de exceção global** — um único `ExceptionHandlerMiddleware` captura todos os erros e retorna JSON padronizado (`{ error: "mensagem", statusCode: 404 }`). Os controllers não têm try/catch nenhum.
+**Middleware de exceção global** - um único `ExceptionHandlerMiddleware` captura todos os erros e retorna JSON padronizado. Os controllers não têm try/catch nenhum.
 
-**`DeleteBehavior.Restrict` em Tasks** — o banco não deixa deletar um usuário que ainda tem tarefas ativas. A validação acontece no serviço antes de chegar no banco, mas a constraint existe como segunda linha de defesa.
+**`DeleteBehavior.Restrict` em Tasks** - o banco não deixa deletar um usuário que ainda tem tarefas ativas. A validação acontece no serviço antes de chegar no banco, mas a constraint existe como segunda linha de defesa.
 
 ---
 
 ## O que ficou pendente
 
-- O componente `Tasks` (`/features/tasks`) foi construído mas não está mapeado nas rotas — estava sendo usado antes de refatorar pro modelo de dashboard individual por usuário. Ficou como código morto por falta de tempo pra limpar.
-
-- O `adminGuard` existe no código mas não está aplicado na rota `/admin`. A proteção acontece via lógica no próprio componente, o que funciona mas não é o ideal.
-
 - Testes não foram implementados (o `skipTests: true` no `angular.json` já entrega isso). Com mais tempo entraria pelo menos uns testes de serviço no backend usando xUnit + mock dos repositórios.
 
-- Sem paginação nas listagens — retorna tudo de uma vez. Pra uma demo funciona, em produção precisaria de cursor ou page/size.
+- Sem paginação nas listagens, retorna tudo de uma vez. Pra uma demo funciona, em produção precisaria de cursor ou page/size.
 =======
-# TaskFlow-CRUD-C#-.NET
->>>>>>> 1809684ca4da7f510b1124f76465e2d48ce47b1c
+# Obrigado por ler até aqui!

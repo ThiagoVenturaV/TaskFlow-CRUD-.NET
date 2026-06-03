@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaskFlow.Domain.Enums
+namespace TaskFlow.Domain.Enums;
 /// <summary>
 /// Lifecycle states a task can be in.
 /// </summary>

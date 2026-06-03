@@ -9,10 +9,10 @@ using TaskFlow.Domain.Entities;
 
 namespace TaskFlow.Infrastructure.Services;
 
-/// <summary>
-/// JWT token generator. Lives in Infrastructure because it depends on
-/// Microsoft.IdentityModel.Tokens — a library detail, not a business rule.
-/// </summary>
+
+
+
+
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
@@ -22,9 +22,9 @@ public class TokenService : ITokenService
         _configuration = configuration;
     }
 
-    /// <summary>
-    /// Generates a short-lived (15 min) JWT Access Token containing the user's ID and email as claims.
-    /// </summary>
+    
+    
+    
     public string GenerateAccessToken(User user)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
@@ -51,10 +51,10 @@ public class TokenService : ITokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    /// <summary>
-    /// Generates a cryptographically secure random refresh token (not a JWT).
-    /// Stored in the DB and used only to obtain new access tokens.
-    /// </summary>
+    
+    
+    
+    
     public string GenerateRefreshToken()
     {
         var randomBytes = new byte[64];
@@ -63,10 +63,10 @@ public class TokenService : ITokenService
         return Convert.ToBase64String(randomBytes);
     }
 
-    /// <summary>
-    /// Reads the <c>sub</c> claim from a JWT without validating the signature.
-    /// Used when refreshing tokens — the caller must still validate the refresh token via the DB.
-    /// </summary>
+    
+    
+    
+    
     public Guid? GetUserIdFromToken(string token)
     {
         try

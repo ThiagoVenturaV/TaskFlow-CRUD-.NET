@@ -4,13 +4,13 @@ using TaskFlow.Domain.Exceptions;
 
 namespace TaskFlow.API.Middleware;
 
-/// <summary>
-/// Global exception handler middleware.
-/// Catches ALL unhandled exceptions and returns a consistent JSON error response.
-/// This keeps controllers clean — no try/catch needed anywhere.
-///
-/// Error response format: { "error": "message", "statusCode": 404 }
-/// </summary>
+
+
+
+
+
+
+
 public class ExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
@@ -44,7 +44,7 @@ public class ExceptionHandlerMiddleware
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };
 
-        // Log server errors with full details; client errors with less noise
+        
         if (statusCode == HttpStatusCode.InternalServerError)
             _logger.LogError(exception, "Unhandled exception: {Message}", exception.Message);
         else

@@ -6,10 +6,10 @@ using TaskFlow.Infrastructure.Data;
 
 namespace TaskFlow.Infrastructure.Repositories;
 
-/// <summary>
-/// Concrete EF Core implementation of IUserRepository.
-/// The Application layer never imports this class — only the interface.
-/// </summary>
+
+
+
+
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;

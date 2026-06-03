@@ -5,7 +5,7 @@ using TaskFlow.Application.Interfaces;
 
 namespace TaskFlow.API.Controllers;
 
-/// <summary>CRUD operations for tasks.</summary>
+
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -19,7 +19,7 @@ public class TasksController : ControllerBase
         _taskService = taskService;
     }
 
-    /// <summary>Get all tasks. Optionally filter by userId.</summary>
+    
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<TaskResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] Guid? userId, CancellationToken ct)
@@ -28,7 +28,7 @@ public class TasksController : ControllerBase
         return Ok(tasks);
     }
 
-    /// <summary>Get a specific task by ID.</summary>
+    
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,7 +38,7 @@ public class TasksController : ControllerBase
         return Ok(task);
     }
 
-    /// <summary>Create a new task. UserId is mandatory.</summary>
+    
     [HttpPost]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -49,7 +49,7 @@ public class TasksController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
     }
 
-    /// <summary>Update a task. Can change the assigned user (UserId in body).</summary>
+    
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,7 +59,7 @@ public class TasksController : ControllerBase
         return Ok(task);
     }
 
-    /// <summary>Delete a task.</summary>
+    
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -69,7 +69,7 @@ public class TasksController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Reassign a task to a different user.</summary>
+    
     [HttpPatch("{id:guid}/assign/{userId:guid}")]
     [ProducesResponseType(typeof(TaskResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

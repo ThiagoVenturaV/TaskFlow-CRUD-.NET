@@ -7,7 +7,6 @@ using TaskFlow.Application.Interfaces;
 
 namespace TaskFlow.API.Controllers;
 
-/// <summary>Handles user registration, login and token refresh.</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -22,7 +21,7 @@ public class AuthController : ControllerBase
         _userRepository = userRepository;
     }
 
-    /// <summary>Register a new user account.</summary>
+    
     [HttpPost("register")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -33,7 +32,7 @@ public class AuthController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, result);
     }
 
-    /// <summary>Login and receive JWT tokens.</summary>
+    
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -43,7 +42,7 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Exchange a refresh token for a new access token.</summary>
+    
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -53,7 +52,7 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Get the currently authenticated user's profile. Requires Bearer token.</summary>
+    
     [HttpGet("me")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]

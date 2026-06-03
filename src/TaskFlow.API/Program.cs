@@ -11,23 +11,23 @@ using TaskFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ============================================================
-// 1. ADD SERVICES
-// ============================================================
 
-// Clean Architecture layers registered via extension methods
+
+
+
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 
-// FluentValidation integration
+
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
 
-// ============================================================
-// 2. JWT AUTHENTICATION
-// ============================================================
+
+
+
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured.");
 
@@ -42,20 +42,20 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true,                    // Token expiry is enforced
+        ValidateLifetime = true,                    
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-        ClockSkew = TimeSpan.Zero                   // No grace period — tokens expire exactly when declared
+        ClockSkew = TimeSpan.Zero                   
     };
 });
 
 builder.Services.AddAuthorization();
 
-// ============================================================
-// 3. SWAGGER WITH JWT SUPPORT
-// ============================================================
+
+
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -66,7 +66,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "CRUD de Tarefas com autenticação JWT. Faça login em /api/auth/login e use o token no botão 'Authorize'."
     });
 
-    // Add JWT button to Swagger UI
+    
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header. Digite: Bearer {seu_token}",
@@ -87,15 +87,15 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Include XML comments in Swagger
+    
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
 });
 
-// ============================================================
-// 4. CORS (allows frontend to call the API)
-// ============================================================
+
+
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -106,11 +106,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ============================================================
-// 5. MIDDLEWARE PIPELINE (order matters!)
-// ============================================================
 
-// Global exception handler must be FIRST — catches all downstream errors
+
+
+
+
 app.UseMiddleware<TaskFlow.API.Middleware.ExceptionHandlerMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -119,25 +119,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API v1");
-        c.RoutePrefix = string.Empty; // Swagger at root URL
+        c.RoutePrefix = string.Empty; 
     });
 }
 
 app.UseHttpsRedirection();
 app.UseCors();
-app.UseAuthentication();  // Must be BEFORE UseAuthorization
+app.UseAuthentication();  
 app.UseAuthorization();
 app.MapControllers();
 
-// ============================================================
-// 6. AUTO-MIGRATE ON STARTUP (runs pending EF migrations automatically)
-// ============================================================
+
+
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TaskFlow.Infrastructure.Data.AppDbContext>();
     db.Database.Migrate();
 
-    // Seed Admin User if not exists
+    
     if (!db.Users.Any(u => u.Email == "admin@taskflow.com"))
     {
         db.Users.Add(new TaskFlow.Domain.Entities.User

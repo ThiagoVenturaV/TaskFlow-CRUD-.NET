@@ -31,7 +31,7 @@ public class AppDbContext : DbContext
             entity.HasMany(u => u.Tasks)
                   .WithOne(t => t.User)
                   .HasForeignKey(t => t.UserId)
-                  .OnDelete(DeleteBehavior.Restrict); // Evita deletar usuário com tarefas ativas
+                  .OnDelete(DeleteBehavior.Restrict); 
         });
     }
 }

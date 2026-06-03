@@ -1,4 +1,4 @@
-### TaskFlow — CRUD .NET + Angular
+# TaskFlow — CRUD .NET + Angular
 
 API REST em .NET 9 com frontend Angular 21 pra gerenciamento de tarefas em formato Kanban. O projeto foi construído com Clean Architecture no backend, JWT com refresh token, e Angular Signals no frontend — sem NgRx, sem overhead desnecessário.
 

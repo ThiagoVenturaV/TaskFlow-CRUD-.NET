@@ -14,5 +14,3 @@ appsettings.local.json
 ## Docker volumes
 /data/
 
-## Course Guide
-curso_taskflow.md

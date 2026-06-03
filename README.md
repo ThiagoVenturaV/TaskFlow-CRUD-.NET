@@ -112,5 +112,5 @@ Jwt__Audience=TaskFlowClient
 - Testes não foram implementados (o `skipTests: true` no `angular.json` já entrega isso). Com mais tempo entraria pelo menos uns testes de serviço no backend usando xUnit + mock dos repositórios.
 
 - Sem paginação nas listagens, retorna tudo de uma vez. Pra uma demo funciona, em produção precisaria de cursor ou page/size.
-=======
+  
 # Obrigado por ler até aqui!

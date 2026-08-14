@@ -26,12 +26,20 @@ public class AppDbContext : DbContext
             entity.HasKey(u => u.Id);
             entity.Property(u => u.Name).IsRequired().HasMaxLength(100);
             entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+            entity.Property(u => u.IsAdmin).HasDefaultValue(false);
             entity.HasIndex(u => u.Email).IsUnique();
 
             entity.HasMany(u => u.Tasks)
                   .WithOne(t => t.User)
                   .HasForeignKey(t => t.UserId)
                   .OnDelete(DeleteBehavior.Restrict); 
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(rt => rt.Token).IsRequired().HasMaxLength(512);
+            entity.HasIndex(rt => rt.Token).IsUnique();
+            entity.HasIndex(rt => new { rt.UserId, rt.IsRevoked, rt.ExpiresAt });
         });
     }
 }

@@ -10,6 +10,7 @@ public record UserResponseDto(
     Guid Id,
     string Name,
     string Email,
+    bool IsAdmin,
     DateTime CreatedAt,
     int TaskCount
 );

@@ -37,13 +37,14 @@ public class UserService : IUserService
 
     public async Task<UserResponseDto> CreateAsync(CreateUserDto dto, CancellationToken ct = default)
     {
-        if (await _userRepository.ExistsByEmailAsync(dto.Email, ct))
-            throw new ConflictException($"Email '{dto.Email}' is already registered.");
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        if (await _userRepository.ExistsByEmailAsync(normalizedEmail, ct))
+            throw new ConflictException("Email is already registered.");
 
         var user = new User
         {
-            Name = dto.Name,
-            Email = dto.Email,
+            Name = dto.Name.Trim(),
+            Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
         };
 
@@ -57,14 +58,15 @@ public class UserService : IUserService
             ?? throw new NotFoundException(nameof(User), id);
 
        
-        if (!string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        if (!string.Equals(user.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase))
         {
-            if (await _userRepository.ExistsByEmailAsync(dto.Email, ct))
-                throw new ConflictException($"Email '{dto.Email}' is already in use.");
+            if (await _userRepository.ExistsByEmailAsync(normalizedEmail, ct))
+                throw new ConflictException("Email is already in use.");
         }
 
-        user.Name = dto.Name;
-        user.Email = dto.Email;
+        user.Name = dto.Name.Trim();
+        user.Email = normalizedEmail;
         user.UpdatedAt = DateTime.UtcNow;
 
         var updated = await _userRepository.UpdateAsync(user, ct);

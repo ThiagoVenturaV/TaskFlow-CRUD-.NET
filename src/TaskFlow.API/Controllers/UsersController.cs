@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using TaskFlow.Application.DTOs.User;
 using TaskFlow.Application.Interfaces;
 
@@ -8,7 +10,7 @@ namespace TaskFlow.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Admin")]
 [Produces("application/json")]
 public class UsersController : ControllerBase
 {
@@ -67,6 +69,8 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
+        if (Guid.TryParse(User.FindFirstValue(JwtRegisteredClaimNames.Sub), out var currentUserId) && currentUserId == id)
+            return Conflict(new { error = "Administrators cannot delete their own account." });
         await _userService.DeleteAsync(id, ct);
         return NoContent();
     }

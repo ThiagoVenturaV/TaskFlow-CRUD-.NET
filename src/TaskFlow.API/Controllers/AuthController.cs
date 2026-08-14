@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using TaskFlow.Application.DTOs.Auth;
@@ -23,6 +24,7 @@ public class AuthController : ControllerBase
 
     
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -34,6 +36,7 @@ public class AuthController : ControllerBase
 
     
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto, CancellationToken ct)
@@ -44,6 +47,7 @@ public class AuthController : ControllerBase
 
     
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenDto dto, CancellationToken ct)
@@ -66,6 +70,6 @@ public class AuthController : ControllerBase
         var user = await _userRepository.GetByIdAsync(userId, ct);
         if (user is null) return Unauthorized();
 
-        return Ok(new { user.Id, user.Name, user.Email, user.CreatedAt, TaskCount = user.Tasks.Count });
+        return Ok(new { user.Id, user.Name, user.Email, user.IsAdmin, user.CreatedAt, TaskCount = user.Tasks.Count });
     }
 }

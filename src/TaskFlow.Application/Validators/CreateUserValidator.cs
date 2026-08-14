@@ -19,11 +19,13 @@ public class CreateUserValidator : AbstractValidator<CreateUserDto>
 
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("Email must be a valid email address.");
+            .EmailAddress().WithMessage("Email must be a valid email address.")
+            .MaximumLength(255);
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(6).WithMessage("Password must be at least 6 characters.")
+            .MinimumLength(12).WithMessage("Password must be at least 12 characters.")
+            .MaximumLength(128)
             .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
             .Matches("[0-9]").WithMessage("Password must contain at least one number.");
     }

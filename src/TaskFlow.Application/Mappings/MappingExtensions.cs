@@ -18,6 +18,7 @@ public static class MappingExtensions
             Id: user.Id,
             Name: user.Name,
             Email: user.Email,
+            IsAdmin: user.IsAdmin,
             CreatedAt: user.CreatedAt,
             TaskCount: user.Tasks?.Count ?? 0
         );

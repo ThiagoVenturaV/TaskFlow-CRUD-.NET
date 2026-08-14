@@ -2,10 +2,14 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 
-export interface UserResponse {
+interface CurrentUser {
   id: string;
   name: string;
   email: string;
+  isAdmin: boolean;
+}
+
+export interface UserResponse extends CurrentUser {
   createdAt: string;
   taskCount: number;
 }
@@ -17,31 +21,30 @@ export interface AuthResponse {
   userId: string;
   userName: string;
   email: string;
+  isAdmin: boolean;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5000/api/auth';
+  private readonly apiUrl = '/api/auth';
 
-  // Signals to track authentication state
-  readonly currentUser = signal<{ id: string; name: string; email: string } | null>(null);
+  readonly currentUser = signal<CurrentUser | null>(null);
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
-  readonly isAdmin = computed(() => this.currentUser()?.email === 'admin@taskflow.com');
+  readonly isAdmin = computed(() => this.currentUser()?.isAdmin === true);
 
   constructor() {
-    this.loadUserFromLocalStorage();
+    this.removeLegacyPersistentTokens();
+    this.loadUserFromSessionStorage();
   }
 
-  register(data: any): Observable<AuthResponse> {
+  register(data: unknown): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       tap(res => this.handleAuthSuccess(res))
     );
   }
 
-  login(credentials: any): Observable<AuthResponse> {
+  login(credentials: unknown): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => this.handleAuthSuccess(res))
     );
@@ -65,51 +68,66 @@ export class AuthService {
   getMe(): Observable<UserResponse> {
     return this.http.get<UserResponse>(`${this.apiUrl}/me`).pipe(
       tap(user => {
-        const current = this.currentUser();
-        if (current) {
-          this.currentUser.set({
-            ...current,
-            name: user.name,
-            email: user.email
-          });
-          localStorage.setItem('tf_user', JSON.stringify(this.currentUser()));
-        }
+        const current: CurrentUser = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          isAdmin: user.isAdmin
+        };
+        sessionStorage.setItem('tf_user', JSON.stringify(current));
+        this.currentUser.set(current);
       })
     );
   }
 
   logout(): void {
-    localStorage.removeItem('tf_access');
-    localStorage.removeItem('tf_refresh');
-    localStorage.removeItem('tf_user');
+    sessionStorage.removeItem('tf_access');
+    sessionStorage.removeItem('tf_refresh');
+    sessionStorage.removeItem('tf_user');
+    this.removeLegacyPersistentTokens();
     this.currentUser.set(null);
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('tf_access');
+    return sessionStorage.getItem('tf_access');
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem('tf_refresh');
+    return sessionStorage.getItem('tf_refresh');
   }
 
   private handleAuthSuccess(res: AuthResponse): void {
-    localStorage.setItem('tf_access', res.accessToken);
-    localStorage.setItem('tf_refresh', res.refreshToken);
-    
-    const user = { id: res.userId, name: res.userName, email: res.email };
-    localStorage.setItem('tf_user', JSON.stringify(user));
+    sessionStorage.setItem('tf_access', res.accessToken);
+    sessionStorage.setItem('tf_refresh', res.refreshToken);
+
+    const user: CurrentUser = {
+      id: res.userId,
+      name: res.userName,
+      email: res.email,
+      isAdmin: res.isAdmin
+    };
+    sessionStorage.setItem('tf_user', JSON.stringify(user));
     this.currentUser.set(user);
   }
 
-  private loadUserFromLocalStorage(): void {
-    const userJson = localStorage.getItem('tf_user');
-    if (userJson) {
-      try {
-        this.currentUser.set(JSON.parse(userJson));
-      } catch {
-        this.logout();
+  private loadUserFromSessionStorage(): void {
+    const userJson = sessionStorage.getItem('tf_user');
+    if (!userJson) return;
+
+    try {
+      const parsed = JSON.parse(userJson) as Partial<CurrentUser>;
+      if (!parsed.id || !parsed.email || typeof parsed.isAdmin !== 'boolean') {
+        throw new Error('Invalid session user');
       }
+      this.currentUser.set(parsed as CurrentUser);
+    } catch {
+      this.logout();
     }
+  }
+
+  private removeLegacyPersistentTokens(): void {
+    localStorage.removeItem('tf_access');
+    localStorage.removeItem('tf_refresh');
+    localStorage.removeItem('tf_user');
   }
 }

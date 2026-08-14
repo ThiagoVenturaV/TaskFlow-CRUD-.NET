@@ -25,7 +25,7 @@ export class Register {
   readonly isNameValid = computed(() => this.name().trim().length >= 3);
   readonly isEmailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email().trim()));
   
-  readonly isPasswordLengthValid = computed(() => this.password().length >= 6);
+  readonly isPasswordLengthValid = computed(() => this.password().length >= 12);
   readonly isPasswordUpperValid = computed(() => /[A-Z]/.test(this.password()));
   readonly isPasswordNumberValid = computed(() => /[0-9]/.test(this.password()));
   

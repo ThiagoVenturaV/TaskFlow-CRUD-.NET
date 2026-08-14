@@ -6,6 +6,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  isAdmin: boolean;
   createdAt: string;
   taskCount: number;
 }
@@ -15,7 +16,7 @@ export interface User {
 })
 export class UserService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5000/api/users';
+  private readonly apiUrl = '/api/users';
 
   getAll(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);

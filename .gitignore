@@ -9,6 +9,7 @@ obj/
 ## Environment
 .env
 .env.local
+!.env.example
 appsettings.local.json
 
 ## Docker volumes

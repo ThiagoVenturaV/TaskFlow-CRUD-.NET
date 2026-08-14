@@ -12,6 +12,7 @@ namespace TaskFlow.Application.Services;
 
 public class AuthService : IAuthService
 {
+    private static readonly string DummyPasswordHash = BCrypt.Net.BCrypt.HashPassword("timing-only-password-value");
     private readonly IUserRepository _userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ITokenService _tokenService;
@@ -28,13 +29,14 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto, CancellationToken ct = default)
     {
-        if (await _userRepository.ExistsByEmailAsync(dto.Email, ct))
-            throw new ConflictException($"Email '{dto.Email}' is already registered.");
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        if (await _userRepository.ExistsByEmailAsync(normalizedEmail, ct))
+            throw new ConflictException("Email is already registered.");
 
         var user = new User
         {
-            Name = dto.Name,
-            Email = dto.Email,
+            Name = dto.Name.Trim(),
+            Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
         };
 
@@ -44,10 +46,9 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto, CancellationToken ct = default)
     {
-        var user = await _userRepository.GetByEmailAsync(dto.Email, ct);
-
-        
-        if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        var user = await _userRepository.GetByEmailAsync(dto.Email.Trim().ToLowerInvariant(), ct);
+        var passwordMatches = BCrypt.Net.BCrypt.Verify(dto.Password, user?.PasswordHash ?? DummyPasswordHash);
+        if (user is null || !passwordMatches)
             throw new BusinessException("Invalid email or password.");
 
         return await GenerateAuthResponseAsync(user!, ct);
@@ -55,6 +56,9 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(refreshToken) || refreshToken.Length > 512)
+            throw new BusinessException("Invalid or expired refresh token.");
+
         var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken, ct);
 
         if (storedToken is null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
@@ -64,7 +68,8 @@ public class AuthService : IAuthService
             ?? throw new NotFoundException(nameof(User), storedToken.UserId);
 
      
-        await _refreshTokenRepository.RevokeAsync(refreshToken, ct);
+        if (!await _refreshTokenRepository.TryRevokeAsync(refreshToken, ct))
+            throw new BusinessException("Invalid or expired refresh token.");
         return await GenerateAuthResponseAsync(user, ct);
     }
 
@@ -89,7 +94,8 @@ public class AuthService : IAuthService
             ExpiresAt: expiresAt,
             UserId: user.Id,
             UserName: user.Name,
-            Email: user.Email
+            Email: user.Email,
+            IsAdmin: user.IsAdmin
         );
     }
 }

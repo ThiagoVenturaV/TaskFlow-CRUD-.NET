@@ -1,126 +1,68 @@
 # TaskFlow — CRUD C# + .NET
 
-API REST em .NET 9 com frontend Angular 21 pra gerenciamento de tarefas em formato Kanban. O projeto foi construído com Clean Architecture no backend, JWT com refresh token, e Angular Signals no frontend.
+API REST em .NET 9 com frontend Angular 21 para gerenciamento de tarefas em formato Kanban. O backend usa Clean Architecture, autenticação JWT com rotação de refresh tokens e autorização por papel e proprietário.
 
----
+## Stack
 
-## Entidade escolhida
+- .NET 9, ASP.NET Core, Entity Framework Core e PostgreSQL
+- Angular 21 com standalone components e Signals
+- Docker Compose
 
-**TaskItem** — representa uma tarefa com título, descrição, data de vencimento, status (Pending / InProgress / Done / Cancelled) e vínculo com um usuário responsável.
+## Configuração segura
 
----
+Nenhuma credencial padrão é criada. Copie `.env.example` para `.env` e preencha valores únicos:
 
-## Stack utilizada
+```text
+DB_PASSWORD=<senha forte e exclusiva>
+JWT_SECRET=<segredo aleatório com pelo menos 32 caracteres>
+ALLOWED_ORIGIN=http://localhost:4200
+```
 
-**Backend**
-- .NET 9 / C#
-- ASP.NET Core Web API
-- Entity Framework Core 9 + PostgreSQL (Npgsql)
-- JWT Bearer Auth + Refresh Token (rotação a cada uso)
-- BCrypt para hash de senha
-- FluentValidation para validação dos DTOs
-- Clean Architecture: Domain → Application → Infrastructure → API
+O arquivo `.env` é ignorado pelo Git. Em produção, forneça as mesmas configurações pelo gerenciador de segredos da plataforma. Nunca reutilize valores de desenvolvimento.
 
-**Frontend**
-- Angular 21 (standalone components)
-- Angular Signals para gerenciamento de estado
-- Angular Router com lazy loading
-- HttpClient + interceptor de auth com refresh silencioso
-
-**Infra**
-- Docker + Docker Compose (PostgreSQL + API)
-- EF Core Migrations
-
----
-
-## Como executar o projeto
-
-### Opção 1 — Docker (recomendado)
-
-Com Docker e Docker Compose instalados:
+## Executar com Docker
 
 ```bash
 docker compose up --build
 ```
 
-A API sobe em `http://localhost:5000` e o banco já é provisionado automaticamente.
-
-Para rodar o frontend separadamente:
+A API fica disponível em `http://localhost:5000`. Para iniciar o frontend com o proxy local:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm start
 ```
 
-Acesse em `http://localhost:4200`.
+Acesse `http://localhost:4200`.
 
-### Opção 2 — Sem Docker
+## Executar sem Docker
 
-Precisa ter .NET 9 SDK e PostgreSQL rodando localmente.
+Instale o .NET 9 SDK e PostgreSQL. Configure `ConnectionStrings__DefaultConnection` e `Jwt__SecretKey` no ambiente antes de iniciar:
 
 ```bash
-# Rodar a API
 cd src/TaskFlow.API
 dotnet run
 ```
 
-Antes, configure a connection string em `appsettings.Development.json` apontando pro seu Postgres local.
+As migrations são aplicadas no início da API. Faça backup do banco antes de uma implantação.
 
----
+## Primeiro administrador
 
-## Configuração do banco de dados
+O sistema não promove contas pelo e-mail e não inclui senha administrativa conhecida. Após cadastrar a primeira conta, um operador autorizado deve definir `IsAdmin = true` diretamente no banco usando uma conexão administrativa auditada. Reinicie a sessão desse usuário para emitir um JWT com o papel `Admin`.
 
-As migrations já estão geradas. Na primeira execução via Docker o banco sobe limpo e a API aplica as migrations automaticamente.
+Se uma versão anterior foi executada, invalide o segredo JWT antigo, troque a senha do banco se ela tiver sido reutilizada e revise ou desative a antiga conta de demonstração. Os refresh tokens antigos em texto puro continuam aceitos apenas durante a janela de migração; ao serem usados, são substituídos por tokens armazenados como hash.
 
-Se quiser rodar manualmente:
+## Controles de segurança
 
-```bash
-cd src/TaskFlow.API
-dotnet ef database update
-```
+- Usuários comuns acessam apenas as próprias tarefas.
+- Operações de usuários, atribuição de tarefas e visualização global exigem o papel `Admin`.
+- Login, cadastro e refresh têm limitação de requisições.
+- Origem CORS é uma allowlist explícita.
+- Segredos obrigatórios falham de forma segura quando ausentes.
+- Refresh tokens são armazenados como SHA-256 e revogados atomicamente.
+- O frontend mantém tokens somente durante a sessão da aba.
 
-As variáveis de ambiente esperadas (já configuradas no `docker-compose.yml`):
+## Validação
 
-```
-ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=taskflow;Username=postgres;Password=postgres
-Jwt__SecretKey=TaskFlow_SuperSecret_JWT_Key_Must_Be_32_Chars_Min!
-Jwt__Issuer=TaskFlowAPI
-Jwt__Audience=TaskFlowClient
-```
-
----
-## Login
-Realizar o cadastro de um usuario pelo frontend ou pela API
-
-Realizar o Login Admin
-Acesse http://localhost:4200 no seu navegador. Graças ao seeder automático presente no backend, você pode fazer o login administrativo imediatamente usando as seguintes credenciais:
-
-E-mail: admin@taskflow.com
-Senha: Admin123
-
----
-
-## Decisões técnicas
-
-**Clean Architecture no backend** - separei em quatro projetos: `Domain` (entidades e exceções), `Application` (serviços, interfaces, DTOs, validators), `Infrastructure` (EF Core, repositórios, TokenService) e `API` (controllers, middleware, DI). As dependências sempre apontam para dentro.
-
-**Repository Pattern** - os serviços da Application falam só com interfaces (`IUserRepository`, `ITaskRepository`). Facilita trocar a implementação sem mexer na regra de negócio.
-
-**JWT + Refresh Token com rotação** - access token de 15 minutos, refresh token de 7 dias armazenado no banco. A cada uso do refresh token o anterior é revogado e um novo é gerado. O interceptor do Angular faz o refresh silencioso automaticamente quando recebe 401.
-
-**Angular Signals** - escolhi Signals em vez de NgRx. O estado local de cada componente vive em signals, com `computed()` pra derivar as colunas do Kanban.
-
-**Middleware de exceção global** - um único `ExceptionHandlerMiddleware` captura todos os erros e retorna JSON padronizado. Os controllers não têm try/catch nenhum.
-
-**`DeleteBehavior.Restrict` em Tasks** - o banco não deixa deletar um usuário que ainda tem tarefas ativas. A validação acontece no serviço antes de chegar no banco, mas a constraint existe como segunda linha de defesa.
-
----
-
-## O que ficou pendente
-
-- Testes não foram implementados (o `skipTests: true` no `angular.json` já entrega isso). Com mais tempo entraria pelo menos uns testes de serviço no backend usando xUnit + mock dos repositórios.
-
-- Sem paginação nas listagens, retorna tudo de uma vez. Pra uma demo funciona, em produção precisaria de cursor ou page/size.
-  
-# Obrigado por ler até aqui!
+O workflow de CI restaura e compila o backend, verifica pacotes vulneráveis e compila/audita o frontend. O projeto ainda não possui suíte de testes automatizados; esse é o principal débito técnico restante.

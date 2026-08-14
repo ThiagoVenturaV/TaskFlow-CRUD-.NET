@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: taskflow
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
     ports:
       - "5432:5432"
     volumes:
@@ -26,10 +26,11 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=taskflow;Username=postgres;Password=postgres
-      - Jwt__SecretKey=TaskFlow_SuperSecret_JWT_Key_Must_Be_32_Chars_Min!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=taskflow;Username=postgres;Password=${DB_PASSWORD:?set DB_PASSWORD in .env}
+      - Jwt__SecretKey=${JWT_SECRET:?set JWT_SECRET in .env}
       - Jwt__Issuer=TaskFlowAPI
       - Jwt__Audience=TaskFlowClient
+      - AllowedOrigins__0=${ALLOWED_ORIGIN:-http://localhost:4200}
     ports:
       - "5000:8080"
 

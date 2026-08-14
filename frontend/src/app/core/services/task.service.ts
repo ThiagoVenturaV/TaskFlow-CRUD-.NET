@@ -27,7 +27,7 @@ export interface TaskItem {
 })
 export class TaskService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:5000/api/tasks';
+  private readonly apiUrl = '/api/tasks';
 
   getAll(userId?: string): Observable<TaskItem[]> {
     let params = new HttpParams();

@@ -39,7 +39,8 @@ namespace TaskFlow.Infrastructure.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -47,6 +48,11 @@ namespace TaskFlow.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "IsRevoked", "ExpiresAt");
 
                     b.ToTable("RefreshTokens");
                 });
@@ -104,6 +110,11 @@ namespace TaskFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsAdmin")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

@@ -39,11 +39,11 @@
             <div 
               class="user-list-item" 
               [class.active]="selectedUser()?.id === user.id"
-              [class.admin-item]="user.email === 'admin@taskflow.com'"
+              [class.admin-item]="user.isAdmin"
               (click)="selectUser(user)">
               <div class="user-avatar-small">
                 <span class="material-icons-outlined">
-                  {{ user.email === 'admin@taskflow.com' ? 'admin_panel_settings' : 'person' }}
+                  {{ user.isAdmin ? 'admin_panel_settings' : 'person' }}
                 </span>
               </div>
               <div class="user-item-info">
@@ -61,7 +61,7 @@
                   (click)="deleteUser(user, $event)" 
                   class="btn-icon-action btn-icon-danger" 
                   title="Excluir" 
-                  [disabled]="user.email === 'admin@taskflow.com'">
+                  [disabled]="user.id === authService.currentUser()?.id">
                   <span class="material-icons-outlined">delete</span>
                 </button>
               </div>
@@ -259,7 +259,7 @@
                 id="formPassword" 
                 name="formPassword"
                 class="form-control"
-                placeholder="Senha (mínimo 6 chars, 1 maiúscula, 1 número)"
+                placeholder="Senha (mínimo 12 chars, 1 maiúscula, 1 número)"
                 [ngModel]="formPassword()"
                 (ngModelChange)="formPassword.set($event)"
                 required>
@@ -269,7 +269,7 @@
                   
                   <span class="validation-helper" [class.helper-valid]="isPasswordLengthValid()" [class.helper-invalid]="!isPasswordLengthValid()">
                     <span class="material-icons-outlined helper-icon">{{ isPasswordLengthValid() ? 'check' : 'close' }}</span>
-                    Mínimo de 6 caracteres
+                    Mínimo de 12 caracteres
                   </span>
 
                   <span class="validation-helper" [class.helper-valid]="isPasswordUpperValid()" [class.helper-invalid]="!isPasswordUpperValid()">

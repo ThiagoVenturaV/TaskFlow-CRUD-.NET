@@ -79,8 +79,8 @@ export class Users implements OnInit {
       return;
     }
 
-    if (!this.isEditing() && !this.formPassword()) {
-      this.formError.set('A senha é obrigatória para novos usuários.');
+    if (!this.isEditing() && this.formPassword().length < 12) {
+      this.formError.set('A senha deve ter pelo menos 12 caracteres.');
       return;
     }
 

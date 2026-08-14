@@ -60,7 +60,7 @@ export class Admin implements OnInit {
   // CRUD Form Validations
   readonly isNameValid = computed(() => this.formName().trim().length >= 3);
   readonly isEmailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formEmail().trim()));
-  readonly isPasswordLengthValid = computed(() => this.formPassword().length >= 6);
+  readonly isPasswordLengthValid = computed(() => this.formPassword().length >= 12);
   readonly isPasswordUpperValid = computed(() => /[A-Z]/.test(this.formPassword()));
   readonly isPasswordNumberValid = computed(() => /[0-9]/.test(this.formPassword()));
   
@@ -192,7 +192,7 @@ export class Admin implements OnInit {
 
   deleteUser(user: User, event: Event): void {
     event.stopPropagation(); // Avoid selecting the card
-    if (user.email === 'admin@taskflow.com') {
+    if (user.id === this.authService.currentUser()?.id) {
       alert('Não é possível excluir a própria conta administrativa!');
       return;
     }

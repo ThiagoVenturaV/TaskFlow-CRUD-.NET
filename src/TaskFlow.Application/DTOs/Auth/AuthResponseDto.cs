@@ -12,5 +12,6 @@ public record AuthResponseDto(
     DateTime ExpiresAt,
     Guid UserId,
     string UserName,
-    string Email
+    string Email,
+    bool IsAdmin
 );
